@@ -105,13 +105,22 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 	public Enumeration<URL> getResources(String name) throws IOException {
 		Objects.requireNonNull(name);
 
-		final Enumeration<URL> resources = urlLoader.getResources(name);
+		@SuppressWarnings("unchecked")
+		final Enumeration<URL>[] resources = new Enumeration[2];
+		resources[0] = urlLoader.getResources(name);
+		resources[1] = originalLoader.getResources(name);
 
-		if (!resources.hasMoreElements()) {
-			return originalLoader.getResources(name);
-		}
+		return new Enumeration<URL>() {
+			@Override
+			public boolean hasMoreElements() {
+				return resources[0].hasMoreElements() || resources[1].hasMoreElements();
+			}
 
-		return resources;
+			@Override
+			public URL nextElement() {
+				return resources[0].hasMoreElements() ? resources[0].nextElement() : resources[1].nextElement();
+			}
+		};
 	}
 
 	@Override
