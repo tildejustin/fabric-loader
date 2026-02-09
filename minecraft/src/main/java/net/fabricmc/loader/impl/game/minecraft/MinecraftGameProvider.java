@@ -206,7 +206,7 @@ public class MinecraftGameProvider implements GameProvider {
 				classifier.process(envGameJar);
 			}
 
-			classifier.process(launcher.getClassPath());
+			classifier.process(launcher.getClassPath(), McLibrary.FABRIC_MOD_JSON);
 
 			if (classifier.has(McLibrary.MC_BUNDLER)) {
 				BundlerProcessor.process(classifier);
