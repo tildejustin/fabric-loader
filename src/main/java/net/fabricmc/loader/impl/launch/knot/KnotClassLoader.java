@@ -47,14 +47,12 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 	}
 
 	private final DynamicURLClassLoader urlLoader;
-	private final ClassLoader originalLoader;
 	private final KnotClassDelegate<KnotClassLoader> delegate;
 
 	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
 		super("knot", new DynamicURLClassLoader(new URL[0]));
-		this.originalLoader = getClass().getClassLoader();
 		this.urlLoader = (DynamicURLClassLoader) getParent();
-		this.delegate = new KnotClassDelegate<>(isDevelopment, envType, this, originalLoader, provider);
+		this.delegate = new KnotClassDelegate<>(isDevelopment, envType, this, getClass().getClassLoader(), provider);
 	}
 
 	KnotClassDelegate<?> getDelegate() {
@@ -65,13 +63,7 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 	public URL getResource(String name) {
 		Objects.requireNonNull(name);
 
-		URL url = urlLoader.getResource(name);
-
-		if (url == null) {
-			url = originalLoader.getResource(name);
-		}
-
-		return url;
+		return urlLoader.getResource(name);
 	}
 
 	@Override
@@ -92,35 +84,14 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 	public InputStream getResourceAsStream(String name) {
 		Objects.requireNonNull(name);
 
-		InputStream inputStream = urlLoader.getResourceAsStream(name);
-
-		if (inputStream == null) {
-			inputStream = originalLoader.getResourceAsStream(name);
-		}
-
-		return inputStream;
+		return urlLoader.getResourceAsStream(name);
 	}
 
 	@Override
 	public Enumeration<URL> getResources(String name) throws IOException {
 		Objects.requireNonNull(name);
 
-		@SuppressWarnings("unchecked")
-		final Enumeration<URL>[] resources = new Enumeration[2];
-		resources[0] = urlLoader.getResources(name);
-		resources[1] = originalLoader.getResources(name);
-
-		return new Enumeration<URL>() {
-			@Override
-			public boolean hasMoreElements() {
-				return resources[0].hasMoreElements() || resources[1].hasMoreElements();
-			}
-
-			@Override
-			public URL nextElement() {
-				return resources[0].hasMoreElements() ? resources[0].nextElement() : resources[1].nextElement();
-			}
-		};
+		return urlLoader.getResources(name);
 	}
 
 	@Override
